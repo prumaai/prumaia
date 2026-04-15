@@ -450,7 +450,7 @@
         </div>
         <div class="frow">
           <div class="fg"><label>Nome da empresa</label><input id="f-empresa" type="text" placeholder="Empresa Ltda."></div>
-          <div class="fg"><label>WhatsApp</label><input id="f-whatsapp" type="tel" placeholder="(11) 99999-9999"></div>
+          <div class="fg"><label>WhatsApp</label><input id="f-whatsapp" type="tel" placeholder="(11) 99999-9999" maxlength="15"></div>
         </div>
         <div class="frow">
           <div class="fg">
@@ -494,52 +494,71 @@
 </footer>
 
 <script>
-async function enviar() {
-  const nome = document.getElementById('f-nome').value.trim();
-  const email = document.getElementById('f-email').value.trim();
-  const empresa = document.getElementById('f-empresa').value.trim();
-  const whatsapp = document.getElementById('f-whatsapp').value.trim();
-
-  if (!nome || !email || !empresa || !whatsapp) {
-    alert('Por favor, preencha seu nome, e-mail, empresa e WhatsApp para continuar.');
-    return;
-  }
-
-  const btn = document.getElementById('btn-enviar');
-  btn.disabled = true;
-  btn.textContent = 'Enviando...';
-
-  const dados = {
-    nome,
-    email,
-    empresa,
-    whatsapp,
-    setor: document.getElementById('f-setor').value,
-    tamanho: document.getElementById('f-tam').value,
-    dor: document.getElementById('f-dor').value,
-  };
-
-  try {
-    const resposta = await fetch('https://formspree.io/f/xvzdgyyd', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dados),
-    });
-
-    if (resposta.ok) {
-      document.getElementById('form-area').style.display = 'none';
-      document.getElementById('ok').style.display = 'block';
+  // Máscara de WhatsApp: (XX) XXXXX-XXXX
+  document.getElementById('f-whatsapp').addEventListener('input', function (e) {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length <= 2) {
+      v = v.replace(/^(\d{0,2})/, '($1');
+    } else if (v.length <= 7) {
+      v = v.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
     } else {
-      alert('Algo deu errado. Por favor, tente novamente.');
+      v = v.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+    }
+    e.target.value = v;
+  });
+
+  async function enviar() {
+    const nome = document.getElementById('f-nome').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    const empresa = document.getElementById('f-empresa').value.trim();
+    const whatsapp = document.getElementById('f-whatsapp').value.trim();
+
+    if (!nome || !email || !empresa || !whatsapp) {
+      alert('Por favor, preencha seu nome, e-mail, empresa e WhatsApp para continuar.');
+      return;
+    }
+
+    const digitos = whatsapp.replace(/\D/g, '');
+    if (digitos.length < 11) {
+      alert('Por favor, informe um WhatsApp válido com DDD: (XX) XXXXX-XXXX');
+      return;
+    }
+
+    const btn = document.getElementById('btn-enviar');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    const dados = {
+      nome,
+      email,
+      empresa,
+      whatsapp,
+      setor: document.getElementById('f-setor').value,
+      tamanho: document.getElementById('f-tam').value,
+      dor: document.getElementById('f-dor').value,
+    };
+
+    try {
+      const resposta = await fetch('https://formspree.io/f/xvzdgyyd', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados),
+      });
+
+      if (resposta.ok) {
+        document.getElementById('form-area').style.display = 'none';
+        document.getElementById('ok').style.display = 'block';
+      } else {
+        alert('Algo deu errado. Por favor, tente novamente.');
+        btn.disabled = false;
+        btn.textContent = 'Quero o diagnóstico gratuito →';
+      }
+    } catch (erro) {
+      alert('Erro de conexão. Verifique sua internet e tente novamente.');
       btn.disabled = false;
       btn.textContent = 'Quero o diagnóstico gratuito →';
     }
-  } catch (erro) {
-    alert('Erro de conexão. Verifique sua internet e tente novamente.');
-    btn.disabled = false;
-    btn.textContent = 'Quero o diagnóstico gratuito →';
   }
-}
 </script>
 </body>
 </html>
