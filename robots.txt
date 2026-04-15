@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pruma-ia.github.io/pruma-ia/sitemap.xml
